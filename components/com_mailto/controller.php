@@ -1,18 +1,16 @@
 <?php
 /**
- * @package     Joomla.Site
- * @subpackage  com_mailto
- *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @package		Joomla.Site
+ * @subpackage	com_mailto
+ * @copyright	Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
 
 /**
- * @package     Joomla.Site
- * @subpackage  com_mailto
- * @since       1.5
+ * @package		Joomla.Site
+ * @subpackage	com_mailto
  */
 class MailtoController extends JControllerLegacy
 {
@@ -22,11 +20,11 @@ class MailtoController extends JControllerLegacy
 	 * @access public
 	 * @since 1.5
 	 */
-	public function mailto()
+	function mailto()
 	{
 		$session = JFactory::getSession();
 		$session->set('com_mailto.formtime', time());
-		$this->input->set('view', 'mailto');
+		JRequest::setVar('view', 'mailto');
 		$this->display();
 	}
 
@@ -36,30 +34,31 @@ class MailtoController extends JControllerLegacy
 	 * @access public
 	 * @since 1.5
 	 */
-	public function send()
+	function send()
 	{
 		// Check for request forgeries
 		JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
-		$app     = JFactory::getApplication();
+		$app	= JFactory::getApplication();
 		$session = JFactory::getSession();
+		$db	= JFactory::getDbo();
 
 		$timeout = $session->get('com_mailto.formtime', 0);
-		if ($timeout == 0 || time() - $timeout < 20)
-		{
-			JError::raiseNotice(500, JText::_('COM_MAILTO_EMAIL_NOT_SENT'));
+		if ($timeout == 0 || time() - $timeout < 20) {
+			JError::raiseNotice(500, JText:: _ ('COM_MAILTO_EMAIL_NOT_SENT'));
 			return $this->mailto();
 		}
 
-		$SiteName = $app->getCfg('sitename');
+		$SiteName	= $app->getCfg('sitename');
+		$MailFrom	= $app->getCfg('mailfrom');
+		$FromName	= $app->getCfg('fromname');
 
-		$link     = MailtoHelper::validateHash($this->input->get('link', '', 'post'));
+		$link		= MailtoHelper::validateHash(JRequest::getCMD('link', '', 'post'));
 
 		// Verify that this is a local link
-		if (!$link || !JUri::isInternal($link))
-		{
+		if (!$link || !JURI::isInternal($link)) {
 			//Non-local url...
-			JError::raiseNotice(500, JText::_('COM_MAILTO_EMAIL_NOT_SENT'));
+			JError::raiseNotice(500, JText:: _ ('COM_MAILTO_EMAIL_NOT_SENT'));
 			return $this->mailto();
 		}
 
@@ -99,11 +98,11 @@ class MailtoController extends JControllerLegacy
 		 */
 		unset ($headers, $fields);
 
-		$email           = $this->input->post->getString('mailto', '');
-		$sender          = $this->input->post->getString('sender', '');
-		$from            = $this->input->post->getString('from', '');
-		$subject_default = JText::sprintf('COM_MAILTO_SENT_BY', $sender);
-		$subject         = $this->input->post->getString('subject', $subject_default);
+		$email				= JRequest::getString('mailto', '', 'post');
+		$sender				= JRequest::getString('sender', '', 'post');
+		$from				= JRequest::getString('from', '', 'post');
+		$subject_default	= JText::sprintf('COM_MAILTO_SENT_BY', $sender);
+		$subject			= JRequest::getString('subject', $subject_default, 'post');
 
 		// Check for a valid to address
 		$error	= false;
@@ -126,28 +125,22 @@ class MailtoController extends JControllerLegacy
 		}
 
 		// Build the message to send
-		$msg	= JText::_('COM_MAILTO_EMAIL_MSG');
-
-		$link = $link;
+		$msg	= JText :: _('COM_MAILTO_EMAIL_MSG');
 		$body	= sprintf($msg, $SiteName, $sender, $from, $link);
 
 		// Clean the email data
 		$subject = JMailHelper::cleanSubject($subject);
 		$body	 = JMailHelper::cleanBody($body);
-
-		// To send we need to use punycode.
-		$from = JStringPunycode::emailToPunycode($from);
-		$from	 = JMailHelper::cleanAddress($from);
-		$email = JStringPunycode::emailToPunycode($email);
+		$sender	 = JMailHelper::cleanAddress($sender);
 
 		// Send the email
 		if (JFactory::getMailer()->sendMail($from, $sender, $email, $subject, $body) !== true)
 		{
-			JError::raiseNotice(500, JText::_('COM_MAILTO_EMAIL_NOT_SENT'));
+			JError::raiseNotice(500, JText:: _ ('COM_MAILTO_EMAIL_NOT_SENT'));
 			return $this->mailto();
 		}
 
-		$this->input->set('view', 'sent');
+		JRequest::setVar('view', 'sent');
 		$this->display();
 	}
 }

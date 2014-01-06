@@ -1,10 +1,7 @@
 <?php
 /**
- * @package     Joomla.Administrator
- * @subpackage  com_users
- *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @copyright	Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
@@ -12,16 +9,14 @@ defined('_JEXEC') or die;
 /**
  * View to edit a user view level.
  *
- * @package     Joomla.Administrator
- * @subpackage  com_users
- * @since       1.6
+ * @package		Joomla.Administrator
+ * @subpackage	com_users
+ * @since		1.6
  */
 class UsersViewLevel extends JViewLegacy
 {
 	protected $form;
-
 	protected $item;
-
 	protected $state;
 
 	/**
@@ -34,11 +29,11 @@ class UsersViewLevel extends JViewLegacy
 		$this->state	= $this->get('State');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
+
 
 		$this->addToolbar();
 		parent::display($tpl);
@@ -47,39 +42,36 @@ class UsersViewLevel extends JViewLegacy
 	/**
 	 * Add the page title and toolbar.
 	 *
-	 * @since   1.6
+	 * @since	1.6
 	 */
 	protected function addToolbar()
 	{
-		JFactory::getApplication()->input->set('hidemainmenu', true);
+		JRequest::setVar('hidemainmenu', 1);
 
+		$user		= JFactory::getUser();
 		$isNew	= ($this->item->id == 0);
-		$canDo  = UsersHelper::getActions();
+		$canDo		= UsersHelper::getActions();
 
-		JToolbarHelper::title(JText::_($isNew ? 'COM_USERS_VIEW_NEW_LEVEL_TITLE' : 'COM_USERS_VIEW_EDIT_LEVEL_TITLE'), 'users levels-add');
+		JToolBarHelper::title(JText::_($isNew ? 'COM_USERS_VIEW_NEW_LEVEL_TITLE' : 'COM_USERS_VIEW_EDIT_LEVEL_TITLE'), 'levels-add');
 
-		if ($canDo->get('core.edit')||$canDo->get('core.create'))
-		{
-			JToolbarHelper::apply('level.apply');
-			JToolbarHelper::save('level.save');
+		if ($canDo->get('core.edit')||$canDo->get('core.create')) {
+			JToolBarHelper::apply('level.apply');
+			JToolBarHelper::save('level.save');
 		}
-		if ($canDo->get('core.create'))
-		{
-			JToolbarHelper::save2new('level.save2new');
+		if ($canDo->get('core.create')) {
+			JToolBarHelper::save2new('level.save2new');
 		}
 		// If an existing item, can save to a copy.
 		if (!$isNew && $canDo->get('core.create')){
-				JToolbarHelper::save2copy('level.save2copy');
+				JToolBarHelper::save2copy('level.save2copy');
 			}
 		if (empty($this->item->id)){
-				JToolbarHelper::cancel('level.cancel');
-		}
-		else
-		{
-				JToolbarHelper::cancel('level.cancel', 'JTOOLBAR_CLOSE');
+				JToolBarHelper::cancel('level.cancel');
+		} else {
+				JToolBarHelper::cancel('level.cancel', 'JTOOLBAR_CLOSE');
 		}
 
-			JToolbarHelper::divider();
-			JToolbarHelper::help('JHELP_USERS_ACCESS_LEVELS_EDIT');
+			JToolBarHelper::divider();
+			JToolBarHelper::help('JHELP_USERS_ACCESS_LEVELS_EDIT');
 	}
 }

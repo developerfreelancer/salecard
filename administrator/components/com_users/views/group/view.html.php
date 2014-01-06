@@ -1,10 +1,7 @@
 <?php
 /**
- * @package     Joomla.Administrator
- * @subpackage  com_users
- *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @copyright	Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
@@ -12,16 +9,14 @@ defined('_JEXEC') or die;
 /**
  * View to edit a user group.
  *
- * @package     Joomla.Administrator
- * @subpackage  com_users
- * @since       1.6
+ * @package		Joomla.Administrator
+ * @subpackage	com_users
+ * @since		1.6
  */
 class UsersViewGroup extends JViewLegacy
 {
 	protected $form;
-
 	protected $item;
-
 	protected $state;
 
 	/**
@@ -34,8 +29,7 @@ class UsersViewGroup extends JViewLegacy
 		$this->form		= $this->get('Form');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseError(500, implode("\n", $errors));
 			return false;
 		}
@@ -47,42 +41,37 @@ class UsersViewGroup extends JViewLegacy
 	/**
 	 * Add the page title and toolbar.
 	 *
-	 * @since   1.6
+	 * @since	1.6
 	 */
 	protected function addToolbar()
 	{
-		JFactory::getApplication()->input->set('hidemainmenu', true);
+		JRequest::setVar('hidemainmenu', 1);
 
-		$isNew = ($this->item->id == 0);
-		$canDo = UsersHelper::getActions();
+		$user		= JFactory::getUser();
+		$isNew		= ($this->item->id == 0);
+		$canDo		= UsersHelper::getActions();
 
-		JToolbarHelper::title(JText::_($isNew ? 'COM_USERS_VIEW_NEW_GROUP_TITLE' : 'COM_USERS_VIEW_EDIT_GROUP_TITLE'), 'users groups-add');
+		JToolBarHelper::title(JText::_($isNew ? 'COM_USERS_VIEW_NEW_GROUP_TITLE' : 'COM_USERS_VIEW_EDIT_GROUP_TITLE'), 'groups-add');
 
-		if ($canDo->get('core.edit') || $canDo->get('core.create'))
-		{
-			JToolbarHelper::apply('group.apply');
-			JToolbarHelper::save('group.save');
+		if ($canDo->get('core.edit')||$canDo->get('core.create')) {
+			JToolBarHelper::apply('group.apply');
+			JToolBarHelper::save('group.save');
 		}
-		if ($canDo->get('core.create'))
-		{
-			JToolbarHelper::save2new('group.save2new');
+		if ($canDo->get('core.create')) {
+			JToolBarHelper::save2new('group.save2new');
 		}
 		// If an existing item, can save to a copy.
-		if (!$isNew && $canDo->get('core.create'))
-		{
-			JToolbarHelper::save2copy('group.save2copy');
+		if (!$isNew && $canDo->get('core.create')) {
+			JToolBarHelper::save2copy('group.save2copy');
 		}
 
-		if (empty($this->item->id))
-		{
-			JToolbarHelper::cancel('group.cancel');
-		}
-		else
-		{
-			JToolbarHelper::cancel('group.cancel', 'JTOOLBAR_CLOSE');
+		if (empty($this->item->id))  {
+			JToolBarHelper::cancel('group.cancel');
+		} else {
+			JToolBarHelper::cancel('group.cancel', 'JTOOLBAR_CLOSE');
 		}
 
-		JToolbarHelper::divider();
-		JToolbarHelper::help('JHELP_USERS_GROUPS_EDIT');
+		JToolBarHelper::divider();
+		JToolBarHelper::help('JHELP_USERS_GROUPS_EDIT');
 	}
 }

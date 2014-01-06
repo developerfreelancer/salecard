@@ -4,7 +4,7 @@
  * @subpackage  mod_finder
  *
  * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
 defined('_JEXEC') or die;
@@ -22,45 +22,38 @@ class ModFinderHelper
 	 * Method to get hidden input fields for a get form so that control variables
 	 * are not lost upon form submission.
 	 *
-	 * @param   string   $route      The route to the page. [optional]
-	 * @param   integer  $paramItem  The menu item ID. (@since 3.1) [optional]
+	 * @param   string  $route  The route to the page. [optional]
 	 *
 	 * @return  string  A string of hidden input form fields
 	 *
 	 * @since   2.5
 	 */
-	public static function getGetFields($route = null, $paramItem = 0)
+	public static function getGetFields($route = null)
 	{
 		$fields = null;
-		$uri = JUri::getInstance(JRoute::_($route));
+		$uri = JURI::getInstance(JRoute::_($route));
 		$uri->delVar('q');
-		$elements = $uri->getQuery(true);
 
 		// Create hidden input elements for each part of the URI.
 		// Add the current menu id if it doesn't have one
-		foreach ($elements as $n => $v)
+		$needId = true;
+		foreach ($uri->getQuery(true) as $n => $v)
 		{
-			if ($n == 'Itemid')
-			{
-				continue;
-			}
 			$fields .= '<input type="hidden" name="' . $n . '" value="' . $v . '" />';
+			if ($n == 'Itemid') {
+				$needId = false;
+			}
 		}
-
-		/*
-		 * Figure out the Itemid value
-		 * First, check if the param is set.  If not, fall back to the Itemid from the JInput object
-		 */
-		$Itemid = $paramItem > 0 ? $paramItem : JFactory::getApplication()->input->getInt('Itemid');
-		$fields .= '<input type="hidden" name="Itemid" value="' . $Itemid . '" />';
-
+		if ($needId) {
+			$fields .= '<input type="hidden" name="Itemid" value="' . JFactory::getApplication()->input->get('Itemid', '0', 'int') . '" />';
+		}
 		return $fields;
 	}
 
 	/**
 	 * Get Smart Search query object.
 	 *
-	 * @param   JRegistry  $params  Module parameters.
+	 * @param   JRegistry object containing module parameters.
 	 *
 	 * @return  FinderIndexerQuery object
 	 *
@@ -88,4 +81,5 @@ class ModFinderHelper
 
 		return $query;
 	}
+
 }

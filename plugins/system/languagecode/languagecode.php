@@ -1,36 +1,30 @@
 <?php
 /**
- * @package     Joomla.Plugin
- * @subpackage  System.languagecode
- *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @copyright	Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// No direct access.
 defined('_JEXEC') or die;
 
 /**
  * Language Code plugin class.
  *
- * @package     Joomla.Plugin
- * @subpackage  Content.languagecode
- * @since       2.5
+ * @package		Joomla.Plugin
+ * @subpackage	Content.language
  */
-class PlgSystemLanguagecode extends JPlugin
+class plgSystemLanguagecode extends JPlugin
 {
 	/**
 	 * Plugin that change the language code used in the <html /> tag
-	 *
-	 * @since  2.5
 	 */
 	public function onAfterRender()
 	{
-		$app = JFactory::getApplication();
 		// Use this plugin only in site application
-		if ($app->isSite())
+		if (JFactory::getApplication()->isSite())
 		{
 			// Get the response body
-			$body = $app->getBody();
+			$body = JResponse::getBody();
 
 			// Get the current language code
 			$code = JFactory::getDocument()->getLanguage();
@@ -78,22 +72,19 @@ class PlgSystemLanguagecode extends JPlugin
 					$replace[] = '${1}' . $new_code . '${3}';
 				}
 			}
-			$app->setBody(preg_replace($patterns, $replace, $body));
+			JResponse::setBody(preg_replace($patterns, $replace, $body));
 		}
 	}
 
 	/**
-	 * @param   JForm	$form	The form to be altered.
-	 * @param   array  $data	The associated data for the form.
+	 * @param	JForm	$form	The form to be altered.
+	 * @param	array	$data	The associated data for the form.
 	 *
-	 * @return  boolean
+	 * @return	boolean
 	 * @since	2.5
 	 */
 	public function onContentPrepareForm($form, $data)
 	{
-		// Ensure that data is an object
-		$data = (object) $data;
-
 		// Check we have a form
 		if (!($form instanceof JForm))
 		{
@@ -115,36 +106,34 @@ class PlgSystemLanguagecode extends JPlugin
 		$app->setUserState('plg_system_language_code.edit', $data->name == 'plg_system_languagecode');
 
 		// Get site languages
-		if ($languages = JLanguage::getKnownLanguages(JPATH_SITE))
-		{
-			// Inject fields into the form
-			foreach ($languages as $tag => $language)
-			{
-				$form->load('
-					<form>
-						<fields name="params">
-							<fieldset
-								name="languagecode"
-								label="PLG_SYSTEM_LANGUAGECODE_FIELDSET_LABEL"
-								description="PLG_SYSTEM_LANGUAGECODE_FIELDSET_DESC"
-							>
-								<field
-									name="'.strtolower($tag).'"
-									type="text"
-									description="' . htmlspecialchars(JText::sprintf('PLG_SYSTEM_LANGUAGECODE_FIELD_DESC', $language['name']), ENT_COMPAT, 'UTF-8') . '"
-									translate_description="false"
-									label="' . $tag . '"
-									translate_label="false"
-									size="7"
-									filter="cmd"
-								/>
-							</fieldset>
-						</fields>
-					</form>
-				');
-			}
-		}
+		$languages = JLanguage::getKnownLanguages(JPATH_SITE);
 
+		// Inject fields into the form
+		foreach ($languages as $tag => $language)
+		{
+			$form->load('
+<form>
+	<fields name="params">
+		<fieldset
+			name="languagecode"
+			label="PLG_SYSTEM_LANGUAGECODE_FIELDSET_LABEL"
+			description="PLG_SYSTEM_LANGUAGECODE_FIELDSET_DESC"
+		>
+			<field
+				name="'.strtolower($tag).'"
+				type="text"
+				description="' . htmlspecialchars(JText::sprintf('PLG_SYSTEM_LANGUAGECODE_FIELD_DESC', $language['name']), ENT_COMPAT, 'UTF-8') . '"
+				translate_description="false"
+				label="' . $tag . '"
+				translate_label="false"
+				size="7"
+				filter="cmd"
+			/>
+		</fieldset>
+	</fields>
+</form>
+			');
+		}
 		return true;
 	}
 }

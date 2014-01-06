@@ -200,9 +200,9 @@ class JCacheStorageXcache extends JCacheStorage
 	 *
 	 * @return  boolean  True on success, false otherwise.
 	 *
-	 * @since   12.1
+	 * @since   11.1
 	 */
-	public static function isSupported()
+	public static function test()
 	{
 		return (extension_loaded('xcache'));
 	}

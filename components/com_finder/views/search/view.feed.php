@@ -43,6 +43,7 @@ class FinderViewSearch extends JViewLegacy
 
 		// Push out the query data.
 		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
+		$suggested = JHtml::_('query.suggested', $query);
 		$explained = JHtml::_('query.explained', $query);
 
 		// Set the document title.
@@ -86,7 +87,7 @@ class FinderViewSearch extends JViewLegacy
 			$item->title = $result->title;
 			$item->link = JRoute::_($result->route);
 			$item->description = $result->description;
-			$item->date = (int) $result->start_date ? JHtml::date($result->start_date, 'l d F Y') : $result->indexdate;
+			$item->date = intval($result->start_date) ? JHtml::date($result->start_date, 'l d F Y') : $result->indexdate;
 
 			// Get the taxonomy data.
 			$taxonomy = $result->getTaxonomy();
@@ -98,7 +99,7 @@ class FinderViewSearch extends JViewLegacy
 				$item->category = $node->title;
 			}
 
-			// Loads item info into RSS array
+			// Loads item info into rss array.
 			$this->document->addItem($item);
 		}
 	}

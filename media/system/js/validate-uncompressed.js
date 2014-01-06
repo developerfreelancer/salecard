@@ -23,8 +23,9 @@ Object.append(Browser.Features, {
 var JFormValidator = new Class({
 	initialize: function()
 	{
-		this.handlers = Object();
-		this.custom   = Object();
+		// Initialize variables
+		this.handlers	= Object();
+		this.custom		= Object();
 
 		// Default handlers
 		this.setHandler('username',
@@ -50,7 +51,7 @@ var JFormValidator = new Class({
 
 		this.setHandler('email',
 			function (value) {
-				regex=/^[a-zA-Z0-9.!#$%&‚Äô*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+				regex=/^[a-zA-Z0-9._-]+(\+[a-zA-Z0-9._-]+)*@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$/;
 				return regex.test(value);
 			}
 		);
@@ -92,7 +93,7 @@ var JFormValidator = new Class({
 		el = document.id(el);
 
 		// Ignore the element if its currently disabled, because are not submitted for the http-request. For those case return always true.
-		if (el.get('disabled') && !el.hasClass('required')) {
+		if(el.get('disabled') && !(el.hasClass('required'))) {
 			this.handleResponse(true, el);
 			return true;
 		}
@@ -157,20 +158,6 @@ var JFormValidator = new Class({
 				valid = false;
 			}
 		});
-
-		if (!valid) {
-			var message = Joomla.JText._('JLIB_FORM_FIELD_INVALID');
-			var errors = jQuery("label.invalid");
-			var error = new Object();
-			error.error = new Array();
-			for (var i=0;i < errors.length; i++) {
-				var label = jQuery(errors[i]).text();
-				if (label != 'undefined') {
-					error.error[i] = message+label.replace("*", "");
-				}
-			}
-			Joomla.renderMessages(error);
-		}
 
 		return valid;
 	},

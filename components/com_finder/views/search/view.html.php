@@ -19,11 +19,8 @@ defined('_JEXEC') or die;
 class FinderViewSearch extends JViewLegacy
 {
 	protected $query;
-
 	protected $params;
-
 	protected $state;
-
 	protected $user;
 
 	/**
@@ -65,12 +62,12 @@ class FinderViewSearch extends JViewLegacy
 		}
 
 		// Push out the view data.
-		$this->state = &$state;
-		$this->params = &$params;
-		$this->query = &$query;
-		$this->results = &$results;
-		$this->total = &$total;
-		$this->pagination = &$pagination;
+		$this->assignRef('state', $state);
+		$this->assignRef('params', $params);
+		$this->assignRef('query', $query);
+		$this->assignRef('results', $results);
+		$this->assignRef('total', $total);
+		$this->assignRef('pagination', $pagination);
 
 		// Check for a double quote in the query string.
 		if (strpos($this->query->input, '"'))
@@ -84,9 +81,6 @@ class FinderViewSearch extends JViewLegacy
 				$router->setVar('q', $this->query->input);
 			}
 		}
-
-		// Log the search
-		JSearchHelper::logSearch($this->query->input, 'com_finder');
 
 		// Push out the query data.
 		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
@@ -127,7 +121,7 @@ class FinderViewSearch extends JViewLegacy
 		$fields = null;
 
 		// Get the URI.
-		$uri = JUri::getInstance(JRoute::_($this->query->toURI()));
+		$uri = JURI::getInstance(JRoute::_($this->query->toURI()));
 		$uri->delVar('q');
 		$uri->delVar('o');
 		$uri->delVar('t');
@@ -135,10 +129,9 @@ class FinderViewSearch extends JViewLegacy
 		$uri->delVar('d2');
 		$uri->delVar('w1');
 		$uri->delVar('w2');
-		$elements = $uri->getQuery(true);
 
 		// Create hidden input elements for each part of the URI.
-		foreach ($elements as $n => $v)
+		foreach ($uri->getQuery(true) as $n => $v)
 		{
 			if (is_scalar($v))
 			{
@@ -184,6 +177,7 @@ class FinderViewSearch extends JViewLegacy
 	{
 		$app = JFactory::getApplication();
 		$menus = $app->getMenu();
+		$pathway = $app->getPathway();
 		$title = null;
 
 		// Because the application sets a default page title,
@@ -198,6 +192,8 @@ class FinderViewSearch extends JViewLegacy
 		{
 			$this->params->def('page_heading', JText::_('COM_FINDER_DEFAULT_PAGE_TITLE'));
 		}
+
+		$id = (int) @$menu->query['id'];
 
 		$title = $this->params->get('page_title', '');
 

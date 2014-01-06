@@ -9,6 +9,8 @@
 
 defined('_JEXEC') or die;
 
+// Register dependent classes.
+
 /**
  * Method to build a SEF route.
  *

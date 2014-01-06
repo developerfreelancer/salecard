@@ -1,17 +1,18 @@
 <?php
 /**
- * @package     Joomla.Administrator
- * @subpackage  Template.hathor
- *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @package		Joomla.Administrator
+ * @subpackage	Templates.hathor
+ * @copyright	Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * @since		1.6
  */
 
+// No direct access.
 defined('_JEXEC') or die;
 
 // Include the component HTML helpers.
 JHtml::addIncludePath(JPATH_COMPONENT.'/helpers/html');
-
+JHtml::_('behavior.tooltip');
 JHtml::_('behavior.multiselect');
 
 $listOrder	= $this->escape($this->state->get('list.ordering'));
@@ -51,6 +52,9 @@ $canDo		= SearchHelper::getActions();
 	<table class="adminlist">
 		<thead>
 			<tr>
+				<th class="row-number-col">
+					<?php echo JText::_('JGRID_HEADING_ROW_NUMBER'); ?>
+				</th>
 				<th class="title">
 					<?php echo JHtml::_('grid.sort', 'COM_SEARCH_HEADING_PHRASE', 'a.search_term', $listDirn, $listOrder); ?>
 				</th>
@@ -60,12 +64,18 @@ $canDo		= SearchHelper::getActions();
 				<th class="width-15">
 					<?php echo JText::_('COM_SEARCH_HEADING_RESULTS'); ?>
 				</th>
+				<th class="width-30">
+					&#160;
+				</th>
 			</tr>
 		</thead>
 
 		<tbody>
 		<?php foreach ($this->items as $i => $item) : ?>
 			<tr class="row<?php echo $i % 2; ?>">
+					<td class="right">
+						<?php echo $i + 1 + $this->pagination->limitstart; ?>
+					</td>
 					<td>
 						<?php echo $this->escape($item->search_term); ?>
 					</td>
@@ -78,6 +88,9 @@ $canDo		= SearchHelper::getActions();
 					<?php else: ?>
 						<?php echo JText::_('COM_SEARCH_NO_RESULTS'); ?>
 					<?php endif; ?>
+					</td>
+					<td>
+						&#160;
 					</td>
 				</tr>
 			<?php endforeach; ?>

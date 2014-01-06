@@ -9,6 +9,8 @@
 
 defined('JPATH_BASE') or die;
 
+jimport('joomla.application.component.helper');
+
 // Load the base adapter.
 require_once JPATH_ADMINISTRATOR . '/components/com_finder/helpers/indexer/adapter.php';
 
@@ -19,7 +21,7 @@ require_once JPATH_ADMINISTRATOR . '/components/com_finder/helpers/indexer/adapt
  * @subpackage  Finder.Weblinks
  * @since       2.5
  */
-class PlgFinderWeblinks extends FinderIndexerAdapter
+class plgFinderWeblinks extends FinderIndexerAdapter
 {
 	/**
 	 * The plugin identifier.
@@ -62,12 +64,18 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 	protected $table = '#__weblinks';
 
 	/**
-	 * Load the language file on instantiation.
+	 * Constructor
 	 *
-	 * @var    boolean
-	 * @since  3.1
+	 * @param   object  &$subject  The object to observe
+	 * @param   array   $config    An array that holds the plugin configuration
+	 *
+	 * @since   2.5
 	 */
-	protected $autoloadLanguage = true;
+	public function __construct(&$subject, $config)
+	{
+		parent::__construct($subject, $config);
+		$this->loadLanguage();
+	}
 
 	/**
 	 * Method to update the item link information when the item category is
@@ -225,6 +233,7 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 		{
 			$this->pluginDisable($pks);
 		}
+
 	}
 
 	/**
@@ -246,8 +255,6 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 			return;
 		}
 
-		$item->setLanguage();
-
 		// Initialize the item parameters.
 		$registry = new JRegistry;
 		$registry->loadString($item->params);
@@ -259,7 +266,7 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 
 		// Build the necessary route and path information.
 		$item->url = $this->getURL($item->id, $this->extension, $this->layout);
-		$item->route = WeblinksHelperRoute::getWeblinkRoute($item->slug, $item->catslug, $item->language);
+		$item->route = WeblinksHelperRoute::getWeblinkRoute($item->slug, $item->catslug);
 		$item->path = FinderIndexerHelper::getContentPath($item->route);
 
 		/*
@@ -290,7 +297,7 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 		FinderIndexerHelper::getContentExtras($item);
 
 		// Index the item.
-		$this->indexer->index($item);
+		FinderIndexer::index($item);
 	}
 
 	/**
@@ -303,6 +310,7 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 	protected function setup()
 	{
 		// Load dependent classes.
+		require_once JPATH_SITE . '/includes/application.php';
 		require_once JPATH_SITE . '/components/com_weblinks/helpers/route.php';
 
 		return true;
@@ -311,47 +319,48 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 	/**
 	 * Method to get the SQL query used to retrieve the list of content items.
 	 *
-	 * @param   mixed  $query  A JDatabaseQuery object or null.
+	 * @param   mixed  $sql  A JDatabaseQuery object or null.
 	 *
 	 * @return  JDatabaseQuery  A database object.
 	 *
 	 * @since   2.5
 	 */
-	protected function getListQuery($query = null)
+	protected function getListQuery($sql = null)
 	{
 		$db = JFactory::getDbo();
 		// Check if we can use the supplied SQL query.
-		$query = $query instanceof JDatabaseQuery ? $query : $db->getQuery(true)
-			->select('a.id, a.catid, a.title, a.alias, a.url AS link, a.description AS summary')
-			->select('a.metakey, a.metadesc, a.metadata, a.language, a.access, a.ordering')
-			->select('a.created_by_alias, a.modified, a.modified_by')
-			->select('a.publish_up AS publish_start_date, a.publish_down AS publish_end_date')
-			->select('a.state AS state, a.created AS start_date, a.params')
-			->select('c.title AS category, c.published AS cat_state, c.access AS cat_access');
+		$sql = $sql instanceof JDatabaseQuery ? $sql : $db->getQuery(true);
+		$sql->select('a.id, a.catid, a.title, a.alias, a.url AS link, a.description AS summary');
+		$sql->select('a.metakey, a.metadesc, a.metadata, a.language, a.access, a.ordering');
+		$sql->select('a.created_by_alias, a.modified, a.modified_by');
+		$sql->select('a.publish_up AS publish_start_date, a.publish_down AS publish_end_date');
+		$sql->select('a.state AS state, a.ordering, a.access, a.approved, a.created AS start_date, a.params');
+		$sql->select('c.title AS category, c.published AS cat_state, c.access AS cat_access');
 
 		// Handle the alias CASE WHEN portion of the query
 		$case_when_item_alias = ' CASE WHEN ';
-		$case_when_item_alias .= $query->charLength('a.alias', '!=', '0');
+		$case_when_item_alias .= $sql->charLength('a.alias');
 		$case_when_item_alias .= ' THEN ';
-		$a_id = $query->castAsChar('a.id');
-		$case_when_item_alias .= $query->concatenate(array($a_id, 'a.alias'), ':');
+		$a_id = $sql->castAsChar('a.id');
+		$case_when_item_alias .= $sql->concatenate(array($a_id, 'a.alias'), ':');
 		$case_when_item_alias .= ' ELSE ';
 		$case_when_item_alias .= $a_id.' END as slug';
-		$query->select($case_when_item_alias);
+		$sql->select($case_when_item_alias);
 
 		$case_when_category_alias = ' CASE WHEN ';
-		$case_when_category_alias .= $query->charLength('c.alias', '!=', '0');
+		$case_when_category_alias .= $sql->charLength('c.alias');
 		$case_when_category_alias .= ' THEN ';
-		$c_id = $query->castAsChar('c.id');
-		$case_when_category_alias .= $query->concatenate(array($c_id, 'c.alias'), ':');
+		$c_id = $sql->castAsChar('c.id');
+		$case_when_category_alias .= $sql->concatenate(array($c_id, 'c.alias'), ':');
 		$case_when_category_alias .= ' ELSE ';
 		$case_when_category_alias .= $c_id.' END as catslug';
-		$query->select($case_when_category_alias)
+		$sql->select($case_when_category_alias);
 
-			->from('#__weblinks AS a')
-			->join('LEFT', '#__categories AS c ON c.id = a.catid');
+		$sql->from('#__weblinks AS a');
+		$sql->join('LEFT', '#__categories AS c ON c.id = a.catid');
+		$sql->where('a.approved = 1');
 
-		return $query;
+		return $sql;
 	}
 
 	/**
@@ -366,9 +375,9 @@ class PlgFinderWeblinks extends FinderIndexerAdapter
 	protected function getUpdateQueryByTime($time)
 	{
 		// Build an SQL query based on the modified time.
-		$query = $this->db->getQuery(true)
-			->where('a.date >= ' . $this->db->quote($time));
+		$sql = $this->db->getQuery(true);
+		$sql->where('a.date >= ' . $this->db->quote($time));
 
-		return $query;
+		return $sql;
 	}
 }

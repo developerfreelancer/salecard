@@ -1,10 +1,7 @@
 <?php
 /**
- * @package     Joomla.Site
- * @subpackage  com_content
- *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @copyright	Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
+ * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
@@ -12,44 +9,39 @@ defined('_JEXEC') or die;
 /**
  * Frontpage View class
  *
- * @package     Joomla.Site
- * @subpackage  com_content
- * @since       1.5
+ * @package		Joomla.Site
+ * @subpackage	com_content
+ * @since		1.5
  */
 class ContentViewFeatured extends JViewLegacy
 {
 	protected $state = null;
-
 	protected $item = null;
-
 	protected $items = null;
-
 	protected $pagination = null;
 
 	protected $lead_items = array();
-
 	protected $intro_items = array();
-
 	protected $link_items = array();
-
 	protected $columns = 1;
 
 	/**
 	 * Display the view
 	 *
-	 * @return  mixed  False on error, null otherwise.
+	 * @return	mixed	False on error, null otherwise.
 	 */
-	public function display($tpl = null)
+	function display($tpl = null)
 	{
+		// Initialise variables.
 		$user = JFactory::getUser();
+		$app = JFactory::getApplication();
 
 		$state 		= $this->get('State');
 		$items 		= $this->get('Items');
 		$pagination	= $this->get('Pagination');
 
 		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
+		if (count($errors = $this->get('Errors'))) {
 			JError::raiseWarning(500, implode("\n", $errors));
 			return false;
 		}
@@ -59,26 +51,24 @@ class ContentViewFeatured extends JViewLegacy
 		// PREPARE THE DATA
 
 		// Get the metrics for the structural page layout.
-		$numLeading	= (int) $params->def('num_leading_articles', 1);
-		$numIntro	= (int) $params->def('num_intro_articles', 4);
-		$numLinks	= (int) $params->def('num_links', 4);
+		$numLeading = $params->def('num_leading_articles', 1);
+		$numIntro = $params->def('num_intro_articles', 4);
+		$numLinks = $params->def('num_links', 4);
 
 		// Compute the article slugs and prepare introtext (runs content plugins).
-		foreach ($items as &$item)
+		foreach ($items as $i => & $item)
 		{
 			$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
 			$item->catslug = ($item->category_alias) ? ($item->catid . ':' . $item->category_alias) : $item->catid;
 			$item->parent_slug = ($item->parent_alias) ? ($item->parent_id . ':' . $item->parent_alias) : $item->parent_id;
-
 			// No link for ROOT category
-			if ($item->parent_alias == 'root')
-			{
+			if ($item->parent_alias == 'root') {
 				$item->parent_slug = null;
 			}
 
-			$item->event = new stdClass;
+			$item->event = new stdClass();
 
-			$dispatcher = JEventDispatcher::getInstance();
+			$dispatcher = JDispatcher::getInstance();
 
 			// Old plugins: Ensure that text property is available
 			if (!isset($item->text))
@@ -86,7 +76,7 @@ class ContentViewFeatured extends JViewLegacy
 				$item->text = $item->introtext;
 			}
 			JPluginHelper::importPlugin('content');
-			$dispatcher->trigger('onContentPrepare', array ('com_content.featured', &$item, &$this->params, 0));
+			$results = $dispatcher->trigger('onContentPrepare', array ('com_content.featured', &$item, &$this->params, 0));
 
 			// Old plugins: Use processed text as introtext
 			$item->introtext = $item->text;
@@ -138,10 +128,10 @@ class ContentViewFeatured extends JViewLegacy
 		//Escape strings for HTML output
 		$this->pageclass_sfx = htmlspecialchars($params->get('pageclass_sfx'));
 
-		$this->params     = &$params;
-		$this->items      = &$items;
-		$this->pagination = &$pagination;
-		$this->user       = &$user;
+		$this->assignRef('params', $params);
+		$this->assignRef('items', $items);
+		$this->assignRef('pagination', $pagination);
+		$this->assignRef('user', $user);
 
 		$this->_prepareDocument();
 
@@ -163,23 +153,18 @@ class ContentViewFeatured extends JViewLegacy
 		if ($menu)
 		{
 			$this->params->def('page_heading', $this->params->get('page_title', $menu->title));
-		}
-		else
-		{
+		} else {
 			$this->params->def('page_heading', JText::_('JGLOBAL_ARTICLES'));
 		}
 
 		$title = $this->params->get('page_title', '');
-		if (empty($title))
-		{
+		if (empty($title)) {
 			$title = $app->getCfg('sitename');
 		}
-		elseif ($app->getCfg('sitename_pagetitles', 0) == 1)
-		{
+		elseif ($app->getCfg('sitename_pagetitles', 0) == 1) {
 			$title = JText::sprintf('JPAGETITLE', $app->getCfg('sitename'), $title);
 		}
-		elseif ($app->getCfg('sitename_pagetitles', 0) == 2)
-		{
+		elseif ($app->getCfg('sitename_pagetitles', 0) == 2) {
 			$title = JText::sprintf('JPAGETITLE', $title, $app->getCfg('sitename'));
 		}
 		$this->document->setTitle($title);

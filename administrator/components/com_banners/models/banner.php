@@ -7,7 +7,10 @@
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
+// No direct access.
 defined('_JEXEC') or die;
+
+jimport('joomla.application.component.modeladmin');
 
 /**
  * Banner model.
@@ -25,21 +28,13 @@ class BannersModelBanner extends JModelAdmin
 	protected $text_prefix = 'COM_BANNERS_BANNER';
 
 	/**
-	 * The type alias for this content type.
-	 *
-	 * @var      string
-	 * @since    3.2
-	 */
-	public $typeAlias = 'com_banners.banner';
-
-	/**
 	 * Method to perform batch operations on an item or a set of items.
 	 *
 	 * @param   array   $commands   An array of commands to perform.
 	 * @param   array   $pks        An array of item ids.
 	 * @param   array   $contexts   An array of item contexts.
 	 *
-	 * @return  boolean   Returns true on success, false on failure.
+	 * @return	boolean	 Returns true on success, false on failure.
 	 *
 	 * @since	2.5
 	 */
@@ -415,8 +410,7 @@ class BannersModelBanner extends JModelAdmin
 	protected function loadFormData()
 	{
 		// Check the session for previously entered form data.
-		$app  = JFactory::getApplication();
-		$data = $app->getUserState('com_banners.edit.banner.data', array());
+		$data = JFactory::getApplication()->getUserState('com_banners.edit.banner.data', array());
 
 		if (empty($data))
 		{
@@ -425,11 +419,10 @@ class BannersModelBanner extends JModelAdmin
 			// Prime some default values.
 			if ($this->getState('banner.id') == 0)
 			{
-				$data->set('catid', $app->input->getInt('catid', $app->getUserState('com_banners.banners.filter.category_id')));
+				$app = JFactory::getApplication();
+				$data->set('catid', JRequest::getInt('catid', $app->getUserState('com_banners.banners.filter.category_id')));
 			}
 		}
-
-		$this->preprocessData('com_banners.banner', $data);
 
 		return $data;
 	}
@@ -444,8 +437,9 @@ class BannersModelBanner extends JModelAdmin
 	 *
 	 * @since   1.6
 	 */
-	public function stick(&$pks, $value = 1)
+	function stick(&$pks, $value = 1)
 	{
+		// Initialise variables.
 		$user = JFactory::getUser();
 		$table = $this->getTable();
 		$pks = (array) $pks;
@@ -490,72 +484,4 @@ class BannersModelBanner extends JModelAdmin
 		$condition[] = 'state >= 0';
 		return $condition;
 	}
-
-	/**
-	 * @since  3.0
-	 */
-	protected function prepareTable($table)
-	{
-		$date = JFactory::getDate();
-		$user = JFactory::getUser();
-
-		if (empty($table->id))
-		{
-			// Set the values
-			$table->created	= $date->toSql();
-
-			// Set ordering to the last item if not set
-			if (empty($table->ordering))
-			{
-				$db = JFactory::getDbo();
-				$query = $db->getQuery(true)
-					->select('MAX(ordering)')
-					->from('#__banners');
-
-				$db->setQuery($query);
-				$max = $db->loadResult();
-
-				$table->ordering = $max + 1;
-			}
-		}
-		else
-		{
-			// Set the values
-			$table->modified	= $date->toSql();
-			$table->modified_by	= $user->get('id');
-		}
-		// Increment the content version number.
-		$table->version++;
-	}
-
-	/**
-	 * Method to save the form data.
-	 *
-	 * @param   array  The form data.
-	 *
-	 * @return  boolean  True on success.
-	 * @since   1.6
-	 */
-
-	public function save($data)
-	{
-		$app = JFactory::getApplication();
-
-		// Alter the name for save as copy
-		if ($app->input->get('task') == 'save2copy')
-		{
-			list($name, $alias) = $this->generateNewTitle($data['catid'], $data['alias'], $data['name']);
-			$data['name']	= $name;
-			$data['alias']	= $alias;
-			$data['state']	= 0;
-		}
-
-		if (parent::save($data))
-		{
-			return true;
-		}
-
-		return false;
-	}
-
 }
